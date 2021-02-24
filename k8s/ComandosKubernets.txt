@@ -1,0 +1,349 @@
+jobs
+deployments
+services
+ingress
+pods
+nodes
+cluster
+ReplicaSet
+DeamonSet
+Jobs
+events
+
+
+
+minikube start
+
+
+kubectl version
+ 
+ 
+Running kubectl config current-context shows thatkubectl is now targeting the new cluster.
+
+
+kubectl config --kubeconfig=config-demo set-cluster development --server=https://kubernetes.docker.internal:6443 --certificate-authority=fake-ca-file
+kubectl config --kubeconfig=config-demo set-cluster scratch --server=https://5.6.7.8 --insecure-skip-tls-verify
+
+
+kubectl config --kubeconfig=config-demo set-credentials developer --client-certificate=fake-cert-file --client-key=fake-key-seefile
+kubectl config --kubeconfig=config-demo set-credentials experimenter --username=exp --password=some-password
+
+add the token to config file
+TOKEN=$(kubectl -n kube-system describe secret default| awk '$1=="token:"{print $2}') kubectl config set-credentials docker-desktop --token="${TOKEN}"
+
+======
+pag 57
+creates a new context, but it doesn’t actually start using it yet 
+kubectl config set-context my-context --namespace=mystuff
+
+To use this newly created context
+kubectl config use-context my-context
+
+======
+pag 58
+get a listing of all resources
+kubectl get <resource-name>
+
+get a specific resource
+kubectl get <resource-name> <obj-name>
+
+command will extract and print the IP address of the specified Pod
+kubectl get pods my-pod -o jsonpath --template={.status.podIP}
+
+more detailed information about a particular object
+kubectl describe <resource-name> <obj-name>
+
+======
+pag 59
+
+create and make changes to the object 
+kubectl apply -f obj.yaml
+
+download the latest object state and then launch an editor that contains the definition
+kubectl edit <resource-name> <obj-name>
+
+records the history of previous configurations in an annotation within the object. You can manipulate these records
+kubectl apply -f myobj.yaml view-last-applied
+
+======
+pag 60
+delete an object
+kubectl delete -f obj.yaml
+
+delete an object using the resource type and name
+kubectl delete <resource-name> <obj-name>
+
+see the logs for a running container
+kubectl logs <pod-name>
+
+provide you with an interactive shell inside the running container so that you can perform more debugging
+kubectl exec -it <pod-name> -- bash
+
+======
+pag 61
+
+attach to the running process
+kubectl attach -it <pod-name>
+
+copy files to and from a container
+kubectl cp <pod-name>:</path/to/remote/file> </path/to/local/file>
+
+access your Pod via the network
+kubectl port-forward <pod-name> 8080:80
+
+list of resources in use by either nodes or Pods
+kubectl top nodes
+kubectl top pods
+
+======
+pag 69
+
+kubectl apply -f kuard-pod.yaml
+
+======
+pag 70
+Listing Pods
+kubectl get pods
+
+======
+pag 71
+
+Deleting a Pod
+kubectl delete pods/kuard
+kubectl delete -f kuard-pod.yaml
+
+======
+pag 72
+
+secure tunnel is created from your local machine
+kubectl port-forward kuard 8080:8080
+
+======
+pag 73
+
+execute commands in the context of the container
+kubectl exec kuard date
+
+get an interactive session
+kubectl exec -it kuard ash
+
+copy file to your local machine
+kubectl cp <pod-name>:/captures/capture3.txt ./capture3.txt
+
+======
+pag 75
+
+kuard status page
+kubectl apply -f kuard-pod-health.yaml
+kubectl port-forward kuard 8080:8080
+
+======
+pag 77
+
+Minimum Required Resources
+Example 5-3. kuard-pod-resreq.yaml
+
+======
+pag 78
+
+Capping Resource Usage with Limits
+Example 5-4. kuard-pod-reslim.yaml
+
+======
+pag 87
+
+1. First, create the alpaca-prod deployment and set the ver, app, and env labels:
+kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --replicas=2 --labels="ver=1,app=alpaca,env=prod"
+2. Next, create the alpaca-test deployment and set the ver, app, and env labels with the appropriate values:
+kubectl run alpaca-test --image=gcr.io/kuar-demo/kuard-amd64:green --replicas=1 --labels="ver=2,app=alpaca,env=test"
+3. Finally, create two deployments for bandicoot. Here we name the environments prod and staging:
+kubectl run bandicoot-prod --image=gcr.io/kuar-demo/kuard-amd64:green --replicas=2 --labels="ver=2,app=bandicoot,env=prod"
+kubectl run bandicoot-staging --image=gcr.io/kuar-demo/kuard-amd64:green --replicas=1 --labels="ver=2,app=bandicoot,env=staging"
+
+kubectl get deployments --show-labels
+
+======
+pag 88
+
+Modifying Labels
+kubectl label deployments alpaca-test "canary=true"
+
+show a label value as a column
+kubectl get deployments -L canary
+
+remove a label by applying a dash suffix
+kubectl label deployments alpaca-test "canary-"
+
+======
+pag 89
+
+Return all the Pods currently running in the cluster
+kubectl get pods --show-labels
+
+======
+pag 93
+
+clean up all of the deployments
+kubectl delete deployments --all
+
+======
+pag 96
+
+create cenario
+
+kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --replicas=3 --port=8080 --labels="ver=1,app=alpaca,env=prod"
+kubectl expose deployment alpaca-prod
+
+kubectl run bandicoot-prod --image=gcr.io/kuar-demo/kuard-amd64:green --replicas=2 --port=8080 --labels="ver=2,app=bandicoot,env=prod"
+kubectl expose deployment bandicoot-prod
+
+kubectl get services -o wide
+ 
+
+======
+pag 97
+
+To interact with services, we are going to port forward to one of the alpaca Pods
+
+ALPACA_POD=$(kubectl get pods -l app=alpaca -o jsonpath='{.items[0].metadata.name}')
+
+kubectl port-forward $ALPACA_POD 48858:8080
+
+
+======
+pag 98
+
+edit an object without saving it to a YAML file
+kubectl edit deployment/alpaca-prod
+
+readinessProbe:
+  httpGet:
+	path: /ready
+	  port: 8080
+	  periodSeconds: 2
+	initialDelaySeconds: 0
+	failureThreshold: 3
+	successThreshold: 1
+
+======
+pag 105
+
+BANDICOOT_POD=$(kubectl get pods -l app=bandicoot -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward $BANDICOOT_POD 48858:8080
+
+======
+pag 111
+Installing Contour
+kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
+
+On Minikube, to get the IP address of the Contour service run
+minikube service -n projectcontour envoy --url
+
+Fetch the external address of Contour
+kubectl get -n projectcontour service envoy -o wide
+
+======
+pag 112
+“backend”
+kubectl run be-default --image=gcr.io/kuar-demo/kuard-amd64:blue --replicas=3 --port=8080
+kubectl expose deployment be-default
+kubectl run alpaca --image=gcr.io/kuar-demo/kuard-amd64:green --replicas=3 --port=8080
+kubectl expose deployment alpaca
+kubectl run bandicoot --image=gcr.io/kuar-demo/kuard-amd64:purple --replicas=3 --port=8080
+kubectl expose deployment bandicoot
+kubectl get services -o wide
+
+kubectl delete ingress host-ingress path-ingress simple-ingress
+kubectl delete service alpaca bandicoot be-default
+kubectl delete deployment alpaca bandicoot be-default
+
+======
+pag 118
+
+Serving TLS
+kubectl create secret tls <secret-name> --cert <certificate-pem-file> --key <private-key-pem-file>.
+
+Once you have the certificate uploaded, you can reference it in an Ingress object
+
+======
+pag 127
+
+https://fixes.co.za/kubernetes/kubernetes-up-and-running/#replicaset-spec
+create a ReplicaSet
+kubectl apply -f kuard-rs.yaml
+
+======
+pag 128
+
+Finding a Replicaset from a pod
+kubectl get pods kuard-hd7x5 -o yaml
+
+Finding a Set of Pods for a ReplicaSet
+kubectl get pods -l app=kuard,version=2
+
+======
+pag 131
+
+Autoscaling based on CPU
+kubectl autoscale rs kuard --min=2 --max=5 --cpu-percent=80
+
+Get autoscalers with:
+kubectl get hpa
+
+Delete a replicaSet with:
+kubectl delete rs kuard
+
+Delete a replicaset without deleting the pods:
+kubectl delete rs kuard --cascade=false
+
+======
+pag 139
+
+Updating a Container Image
+
+edit an object without saving it to a YAML file
+kubectl edit deployment/kuard
+
+kubectl rollout status deployments kuard
+
+kubectl rollout history deployment kuard
+
+Rollout roll back
+ kubectl rollout undo deployments kuard
+ kubectl rollout undo deployments kuard --to-revision=3
+
+======
+pag 148
+
+kubectl delete deployments kuard
+kubectl delete -f kuard-deployment.yaml
+
+======
+pag 153
+
+Create DeamonSet for fluentd log on each node
+kubectl apply -f fluentd.yaml
+
+======
+pag 157
+
+show thecurrent rollout status of a DaemonSet named my-daemon-set
+kubectl rollout status daemonSets my-daemon-set 
+
+======
+pag 164 
+Jobs Paralelims
+
+
+get the events causing the error:
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+
+kubectl describe job parallel
+
+kubectl logs parallel-qlwbs
+======
+pag 00
+
+======
+pag 00
