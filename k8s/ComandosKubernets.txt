@@ -9,7 +9,8 @@ ReplicaSet
 DeamonSet
 Jobs
 events
-
+ConfigMap
+secrets
 
 
 minikube start
@@ -343,7 +344,29 @@ kubectl describe job parallel
 
 kubectl logs parallel-qlwbs
 ======
+pag 174
+
+Get ConfigMaps
+kubectl get configmaps my-config -o yaml
+
+======
+pag 182
+
+list all secrets
+kubectl get secrets
+
+list all of the ConfigMaps
+kubectl get configmaps
+
+
+
+======
 pag 00
+
+
+======
+pag 00
+
 
 ======
 pag 00
